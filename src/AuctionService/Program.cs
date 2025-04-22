@@ -1,5 +1,6 @@
 using AuctionService.Data;
 using Microsoft.EntityFrameworkCore;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,22 @@ builder.Services.AddDbContext<AuctionDbContext>(options =>
 
 // for automapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+// for rabbitmq
+builder.Services.AddMassTransit(x =>
+{
+    x.AddEntityFrameworkOutbox<AuctionDbContext>(o =>
+    {
+        o.QueryDelay = TimeSpan.FromSeconds(5); // resend the message after 5 seconds if it fails
+        o.UsePostgres();
+        o.UseBusOutbox(); // use bus outbox to send messages to the bus
+    });
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 var app = builder.Build();
 

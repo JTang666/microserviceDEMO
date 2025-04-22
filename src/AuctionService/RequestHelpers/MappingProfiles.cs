@@ -1,6 +1,7 @@
 using AuctionService.DTOs;
 using AuctionService.Entities;
 using AutoMapper;
+using Contracts;
 // using Contracts;
 
 namespace AuctionService.RequestHelpers;
@@ -13,10 +14,10 @@ public class MappingProfiles : Profile
         CreateMap<CreateAuctionDto, Auction>()
             .ForMember(d => d.Item, o => o.MapFrom(s => s));
         CreateMap<CreateAuctionDto, Item>();
-        /*
+
+        // transfer AuctionDto to AuctionCreated(in Contracts project), and send it to RabbitMQ
         CreateMap<AuctionDto, AuctionCreated>();
-        CreateMap<Auction, AuctionUpdated>().IncludeMembers(a => a.Item);
         CreateMap<Item, AuctionUpdated>();
-        */
+        CreateMap<Auction, AuctionUpdated>().IncludeMembers(a => a.Item);
     }
 }
