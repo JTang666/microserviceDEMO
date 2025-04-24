@@ -31,7 +31,7 @@ public class AuctionsController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<List<AuctionDto>>> GetAllAuctions(string date)
-    {
+    {   
         var query = _context.Auctions.OrderBy(x => x.Item.Make).AsQueryable();
 
         if (!string.IsNullOrEmpty(date))
@@ -57,12 +57,14 @@ public class AuctionsController : ControllerBase
         return _mapper.Map<AuctionDto>(auction);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<AuctionDto>> CreateAuction(CreateAuctionDto auctionDto)
     {
         var auction = _mapper.Map<Auction>(auctionDto);
-        // todo: add current user as seller
-        auction.Seller = "test";
+
+        // get the current user from the token
+        auction.Seller = User.Identity.Name;
 
         _context.Auctions.Add(auction);
 
@@ -83,6 +85,7 @@ public class AuctionsController : ControllerBase
             new { id = auction.Id }, _mapper.Map<AuctionDto>(auction));
     }
 
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateAuction(Guid id, UpdateAuctionDto updateAuctionDto)
     {
@@ -92,6 +95,11 @@ public class AuctionsController : ControllerBase
         if (auction == null)
         {
             return NotFound();
+        }
+
+        if(auction.Seller != User.Identity.Name)
+        {
+            return Forbid();
         }
 
         auction.Item.Make = updateAuctionDto.Make ?? auction.Item.Make;
@@ -112,6 +120,7 @@ public class AuctionsController : ControllerBase
         return BadRequest("Failed to update auction");
     }
 
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteAuction(Guid id)
     {
@@ -122,7 +131,10 @@ public class AuctionsController : ControllerBase
             return NotFound();
         }
 
-        // todo : check the seller is the current user
+        if(auction.Seller != User.Identity.Name)
+        {
+            return Forbid();
+        }
 
         _context.Auctions.Remove(auction);
 
