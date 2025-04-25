@@ -31,7 +31,15 @@ public class AuctionsController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<List<AuctionDto>>> GetAllAuctions(string date)
-    {   
+    {
+        List<int> myList = new List<int> { 1, 2, 3 };
+
+        foreach (var item in myList)
+        {
+            Console.WriteLine(item);
+            Console.WriteLine(" ");
+        }
+
         var query = _context.Auctions.OrderBy(x => x.Item.Make).AsQueryable();
 
         if (!string.IsNullOrEmpty(date))
